@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary Meta Tags -->
+  <title>Redirecting / Link Stats</title>
+  <meta name="title" content="URL Shortener - Link Router">
+  <meta name="description" content="URL shortener redirection and analytics handler.">
+  
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM VARIABLES (DARK THEME - DEFAULT)
+       ========================================================================== */
+    :root, [data-theme="dark"] {
+      --bg-main: #090d16;
+      --bg-card: rgba(19, 27, 46, 0.6);
+      --bg-card-hover: rgba(25, 36, 61, 0.8);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(99, 102, 241, 0.5);
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-primary: #6366f1; /* Indigo */
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --input-bg: rgba(15, 23, 42, 0.8);
+      --icon-bg: rgba(255, 255, 255, 0.03);
+      
+      --btn-bg: rgba(255, 255, 255, 0.04);
+      --btn-hover: rgba(255, 255, 255, 0.09);
+
+      --bg-gradient: 
+        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 40%);
+      --heading-gradient: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+      --card-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+      
+      --error-color: #ef4444;
+      --success-color: #10b981;
+    }
+
+    /* ==========================================================================
+       LIGHT THEME OVERRIDES
+       ========================================================================== */
+    [data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-card: rgba(255, 255, 255, 0.75);
+      --bg-card-hover: rgba(255, 255, 255, 0.95);
+      --border-color: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(79, 70, 229, 0.4);
+      
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      
+      --accent-primary: #4f46e5;
+      --accent-hover: #4338ca;
+      --accent-glow: rgba(79, 70, 229, 0.15);
+      --input-bg: rgba(255, 255, 255, 0.9);
+      --icon-bg: rgba(0, 0, 0, 0.04);
+      
+      --btn-bg: rgba(0, 0, 0, 0.03);
+      --btn-hover: rgba(0, 0, 0, 0.07);
+
+      --bg-gradient: 
+        radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 40%);
+      --heading-gradient: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+      --card-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.08);
+      
+      --error-color: #dc2626;
+      --success-color: #059669;
+    }
+
+    :root {
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding: 2rem 1.5rem 4rem;
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container { max-width: 640px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; }
+
+    /* Top Navigation Bar */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 6px 12px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-color); transition: all 0.2s ease;
+    }
+    .back-link:hover { color: var(--text-primary); border-color: var(--accent-primary); }
+
+    .theme-toggle {
+      background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 14px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; backdrop-filter: blur(8px); transition: all 0.2s ease;
+    }
+    .theme-toggle:hover { border-color: var(--accent-primary); box-shadow: 0 0 12px var(--accent-glow); }
+    .theme-toggle svg { width: 16px; height: 16px; }
+
+    [data-theme="dark"] .sun-icon { display: block; } [data-theme="dark"] .moon-icon { display: none; }
+    [data-theme="light"] .sun-icon { display: none; } [data-theme="light"] .moon-icon { display: block; }
+
+    /* Main Container Card */
+    .view-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--card-shadow);
+      margin: auto 0;
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* State Layouts */
+    .view-state { display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; }
+    .view-state.active { display: flex; }
+
+    /* Loading Spinner UI */
+    .loader-spinner {
+      width: 44px; height: 44px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--accent-primary);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loader-title { font-size: 1.35rem; font-weight: 700; color: var(--text-primary); }
+    .loader-desc { font-size: 0.95rem; color: var(--text-secondary); font-family: var(--font-mono); }
+
+    /* 404 Error State UI */
+    .error-code { font-size: 4rem; font-weight: 900; background: var(--heading-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+    .error-icon {
+      width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error-color); color: var(--error-color); display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;
+    }
+    .error-title { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+    .error-subtitle { color: var(--text-secondary); font-size: 0.95rem; max-width: 400px; }
+
+    /* Buttons */
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 0.5rem; }
+    .action-btn {
+      padding: 12px 20px; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+    }
+    .btn-primary { background: var(--accent-primary); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 4px 12px var(--accent-glow); transform: translateY(-1px); }
+    .btn-secondary { background: var(--btn-bg); border: 1px solid var(--border-color); color: var(--text-primary); }
+    .btn-secondary:hover { background: var(--btn-hover); border-color: var(--accent-primary); }
+
+    /* Analytics / Stats View UI */
+    .stats-header { text-align: center; width: 100%; margin-bottom: 0.5rem; }
+    .stats-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); border: 1px solid var(--accent-primary); color: var(--accent-primary); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;
+    }
+    .stats-code { font-family: var(--font-mono); font-size: 2rem; font-weight: 800; color: var(--text-primary); }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; width: 100%; margin: 1rem 0; text-align: left; }
+    .stat-card {
+      background: var(--input-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 4px;
+    }
+    .stat-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--accent-primary); font-family: var(--font-mono); }
+    .stat-value-sub { font-size: 0.9rem; font-weight: 500; color: var(--text-primary); }
+
+    .dest-box {
+      width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; text-align: left; display: flex; flex-direction: column; gap: 6px;
+    }
+    .dest-url {
+      font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent-primary); word-break: break-all; text-decoration: none;
+    }
+    .dest-url:hover { text-decoration: underline; }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--accent-primary); color: #fff; padding: 10px 20px; border-radius: var(--radius-md); font-size: 0.9rem; font-weight: 600; box-shadow: var(--card-shadow); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); pointer-events: none; z-index: 1000;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Nav -->
+    <div class="top-bar">
+      <a href="/" class="back-link">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        URL Shortener
+      </a>
+
+      <button class="theme-toggle" id="themeToggleBtn">
+        <svg class="sun-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <svg class="moon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <span id="themeToggleText">Light Mode</span>
+      </button>
+    </div>
+
+    <!-- Container View Card -->
+    <div class="view-card">
+      
+      <!-- 1. LOADING STATE -->
+      <div id="loadingState" class="view-state active">
+        <div class="loader-spinner"></div>
+        <div class="loader-title" id="loadingTitle">Checking Short Link...</div>
+        <div class="loader-desc" id="loadingCode">/code</div>
+      </div>
+
+      <!-- 2. LINK STATS STATE (Short code +) -->
+      <div id="statsState" class="view-state">
+        <div class="stats-header">
+          <div class="stats-badge">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/></svg>
+            Link Analytics
+          </div>
+          <div class="stats-code" id="statCode">xyz</div>
+        </div>
+
+        <div class="dest-box">
+          <span class="stat-label">Original Destination</span>
+          <a id="statOriginalUrl" href="#" target="_blank" rel="noopener noreferrer" class="dest-url">https://example.com</a>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Total Clicks</span>
+            <span class="stat-value" id="statClickCount">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Created At</span>
+            <span class="stat-value-sub" id="statCreatedAt">-</span>
+          </div>
+          <div class="stat-card" style="grid-column: span 2;">
+            <span class="stat-label">Last Accessed</span>
+            <span class="stat-value-sub" id="statLastAccessed">-</span>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <a id="statVisitBtn" href="#" target="_blank" class="action-btn btn-primary">
+            Visit Destination
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+          <button id="statCopyBtn" class="action-btn btn-secondary">
+            Copy Short URL
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. 404 NOT FOUND STATE -->
+      <div id="notFoundState" class="view-state">
+        <div class="error-icon">
+          <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="error-code">404</div>
+        <h2 class="error-title">Link Not Found</h2>
+        <p class="error-subtitle">The short code <strong id="invalidCodeDisplay" style="color:var(--text-primary); font-family:var(--font-mono);"></strong> does not exist or has expired.</p>
+        
+        <div class="btn-group">
+          <a href="/" class="action-btn btn-primary">Shorten New Link</a>
+          <a href="/" class="action-btn btn-secondary">Back to Home</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Copied to clipboard!</div>
+
+  <script>
+    // --------------------------------------------------------------------------
+    // Theme Logic
+    // --------------------------------------------------------------------------
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeToggleText = document.getElementById('themeToggleText');
+    const htmlElement = document.documentElement;
+
+    function applyTheme(theme) {
+      htmlElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      themeToggleText.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    }
+
+    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(savedTheme);
+
+    themeToggleBtn.addEventListener('click', () => {
+      const currentTheme = htmlElement.getAttribute('data-theme');
+      applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    // --------------------------------------------------------------------------
+    // Routing & API Handling Logic
+    // --------------------------------------------------------------------------
+    const API_BASE = 'https://api.mj46.in/api/v1/url-shortener/';
+    
+    // UI View Elements
+    const loadingState = document.getElementById('loadingState');
+    const statsState = document.getElementById('statsState');
+    const notFoundState = document.getElementById('notFoundState');
+    
+    const loadingTitle = document.getElementById('loadingTitle');
+    const loadingCode = document.getElementById('loadingCode');
+    const invalidCodeDisplay = document.getElementById('invalidCodeDisplay');
+    const toast = document.getElementById('toast');
+    let toastTimeout;
+
+    function showState(stateElement) {
+      [loadingState, statsState, notFoundState].forEach(el => el.classList.remove('active'));
+      stateElement.classList.add('active');
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+        const d = new Date(dateString);
+        return d.toLocaleString(undefined, { 
+          year: 'numeric', month: 'short', day: 'numeric', 
+          hour: '2-digit', minute: '2-digit' 
+        });
+      } catch (e) {
+        return dateString;
+      }
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    async function handleRouting() {
+      // Clean path slug (e.g., "/abc" -> "abc", "/abc+" -> "abc+")
+      const rawPath = window.location.pathname.replace(/^\/+|\/+$/g, '');
+
+      // Standard home or empty paths
+      if (!rawPath || rawPath === '404.html' || rawPath === 'index.html') {
+        invalidCodeDisplay.textContent = '/';
+        showState(notFoundState);
+        return;
+      }
+
+      const isStatsQuery = rawPath.endsWith('+');
+      loadingCode.textContent = `/${rawPath}`;
+
+      if (isStatsQuery) {
+        // Analytics View (/code+)
+        loadingTitle.textContent = 'Fetching Link Analytics...';
+        showState(loadingState);
+
+        try {
+          const response = await fetch(`${API_BASE}${encodeURIComponent(rawPath)}`);
+          if (!response.ok) throw new Error('Short code not found');
+          
+          const data = await response.json();
+          renderStatsView(data);
+        } catch (error) {
+          console.error(error);
+          invalidCodeDisplay.textContent = `/${rawPath}`;
+          showState(notFoundState);
+        }
+      } else {
+        // Standard Redirection (/code)
+        loadingTitle.textContent = 'Redirecting...';
+        showState(loadingState);
+
+        try {
+          const response = await fetch(`${API_BASE}${encodeURIComponent(rawPath)}`);
+          if (!response.ok) throw new Error('Short code not found');
+
+          const data = await response.json();
+          if (data && data.original_url) {
+            // Perform instant redirect
+            window.location.replace(data.original_url);
+          } else {
+            throw new Error('Invalid target URL');
+          }
+        } catch (error) {
+          console.error(error);
+          invalidCodeDisplay.textContent = `/${rawPath}`;
+          showState(notFoundState);
+        }
+      }
+    }
+
+    function renderStatsView(data) {
+      const fullShortUrl = `${window.location.origin}/${data.short_code}`;
+
+      document.getElementById('statCode').textContent = data.short_code;
+      
+      const origLink = document.getElementById('statOriginalUrl');
+      origLink.href = data.original_url;
+      origLink.textContent = data.original_url;
+
+      document.getElementById('statClickCount').textContent = (data.click_count ?? 0).toLocaleString();
+      document.getElementById('statCreatedAt').textContent = formatDate(data.created_at);
+      document.getElementById('statLastAccessed').textContent = formatDate(data.last_accessed_at);
+
+      document.getElementById('statVisitBtn').href = data.original_url;
+      document.getElementById('statCopyBtn').onclick = () => {
+        navigator.clipboard.writeText(fullShortUrl).then(() => showToast('Copied short link!'));
+      };
+
+      showState(statsState);
+    }
+
+    // Initialize Router
+    handleRouting();
+  </script>
+</body>
+</html>
