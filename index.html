@@ -133,7 +133,7 @@
 
     /* Card Containers */
     .app-card {
-      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.50rem; backdrop-filter: blur(12px); box-shadow: var(--card-shadow); display: flex; flex-direction: column;
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; backdrop-filter: blur(12px); box-shadow: var(--card-shadow); display: flex; flex-direction: column;
     }
 
     /* Form & Input */
@@ -171,12 +171,13 @@
 
     .error-msg { color: var(--error-color); font-size: 0.9rem; font-weight: 500; margin-top: 0.75rem; text-align: center; display: none; }
 
-    /* History Panel */
+    /* Panels Header */
     .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
     .panel-title { font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
     .clear-btn { background: transparent; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: color 0.2s ease; }
     .clear-btn:hover { color: var(--error-color); }
 
+    /* History Panel */
     .history-list { flex: 1; overflow-y: auto; max-height: 400px; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 4px; }
     .history-item { background: var(--input-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s ease; gap: 10px; }
     .history-item:hover { border-color: var(--border-hover); }
@@ -186,6 +187,22 @@
     .history-short { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; color: var(--accent-primary); word-break: break-all; }
     
     .empty-msg { color: var(--text-muted); text-align: center; font-size: 0.85rem; margin: auto 0; padding: 2rem 0; }
+
+    /* How To Use Section */
+    .how-to-card { margin-top: 1.5rem; }
+    .instructions-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;
+    }
+    .step-item {
+      display: flex; gap: 0.85rem; align-items: flex-start; background: var(--input-bg); border: 1px solid var(--border-color); padding: 1rem; border-radius: var(--radius-md); transition: border-color 0.2s ease;
+    }
+    .step-item:hover { border-color: var(--border-hover); }
+    .step-number {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--accent-glow); border: 1px solid var(--accent-primary); color: var(--accent-primary); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .step-content strong { display: block; font-size: 0.9rem; margin-bottom: 2px; color: var(--text-primary); }
+    .step-content p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; }
+    .step-content code { font-family: var(--font-mono); background: var(--bg-card); padding: 1px 5px; border-radius: 4px; color: var(--accent-primary); font-size: 0.78rem; border: 1px solid var(--border-color); }
 
     /* Toast Notification */
     .toast {
@@ -270,6 +287,47 @@
       </aside>
 
     </div>
+
+    <!-- How to Use Section -->
+    <section class="app-card how-to-card">
+      <div class="panel-header" style="margin-bottom: 1rem;">
+        <div class="panel-title">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          How to Use
+        </div>
+      </div>
+      <div class="instructions-grid">
+        <div class="step-item">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <strong>Paste Your URL</strong>
+            <p>Enter your long web address into the input field above.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <strong>Shorten & Copy</strong>
+            <p>Click "Shorten URL" to generate a short link and copy it to your clipboard.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <strong>View Analytics</strong>
+            <p>Append a <code>+</code> at the end of any short code (e.g., <code>/code+</code>) to view click stats.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <strong>History Tracking</strong>
+            <p>Your generated links are saved in your browser history for easy access.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <div id="toast" class="toast">Copied to clipboard!</div>
